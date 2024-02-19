@@ -73,7 +73,6 @@ def upload_peserta():
     try:
         data = request.json
         data_list = json.dumps(data['data'])
-
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
 
@@ -98,7 +97,7 @@ def upload_peserta():
         connection.close()
         now = datetime.now()
         dt = now.strftime("%H:%M:%S")
-
+        
         return jsonify({'status': 'success', 'data': data_list,'date':dt})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
