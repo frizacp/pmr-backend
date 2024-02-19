@@ -15,8 +15,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 db_config = {
     'host': 'localhost',
-    'user': 'root',
-    'password': '',
+    'user': 'n1569631_admin',
+    'password': 'Ohno210500!',
     'database': 'n1569631_pickmyrace'
 }
 
