@@ -150,7 +150,7 @@ def get_alldata():
         cursor = connection.cursor(dictionary=True)
 
         query = '''
-            SELECT data_pelari.bib, data_pelari.firstName,data_pelari.gender,data_pelari.contest,data_pelari.category,
+            SELECT data_pelari.bib, data_pelari.firstName,data_pelari.gender,data_pelari.contest,data_pelari.category,data_pelari.race,
             finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace,
             cp1.finishtime AS cp1,
             cp2.finishtime AS cp2,
