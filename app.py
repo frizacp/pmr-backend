@@ -72,7 +72,7 @@ def upload_peserta():
     global db_config
     try:
         data = request.json
-        data_list = json.loads(data['data'])
+        data_list = json.dumps(data['data'])
 
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
