@@ -70,26 +70,38 @@ def drop_db():
 @app.route('/uploadpeserta', methods=['POST'])
 def upload_peserta():
     global db_config
-    data = request.json
-    data_list = json.loads(data['data'])
+    try:
+        data = request.json
+        data_list = json.loads(data['data'])
 
-    connection = mysql.connector.connect(**db_config)
-    cursor = connection.cursor()
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
 
-    for entry in data_list:
-        bib = entry['bib'] 
-        name = entry['name'] 
-        gender = entry['gender'] 
-        contest = entry['contest'] 
-        chip_code = entry['chip code'] 
-        insert_query = f"INSERT IGNORE INTO data_pelari (`bib`, `name`, `gender`, `contest`, `chipcode`) VALUES (%s, %s, %s, %s, %s)"
-        cursor.execute(insert_query, (bib,name,gender,contest,chip_code))
+        for entry in data_list:
+            bib = entry['bib'] 
+            firstName = entry['firstName'] 
+            lastName = entry['lastName'] 
+            gender = entry['gender'] 
+            type = entry['type'] 
+            dob = entry['dob'] 
+            age = entry['age'] 
+            contest = entry['contest'] 
+            category = entry['category'] 
+            race = entry['race'] 
+            chipcode = entry['chipcode'] 
+            insert_query = f"INSERT IGNORE INTO data_pelari (`bib`, `firstName`, `lastName`, `gender`,`type`,`dob`,`age`,`contest`,`category`,`race`,`chipcode`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(insert_query, (bib,firstName,lastName,gender,type,dob,age,contest,category,race,chipcode))
 
-    connection.commit()
+        connection.commit()
 
-    cursor.close()
-    connection.close()
-    return '200'
+        cursor.close()
+        connection.close()
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+
+        return jsonify({'status': 'success', 'data': data_list,'date':dt})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/getdata_tagcheck', methods=['GET'])
 def get_datatag():
