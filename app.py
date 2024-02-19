@@ -15,8 +15,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 db_config = {
     'host': 'localhost',
-    'user': 'n1569631_admin',
-    'password': 'Ohno210500!',
+    'user': 'root',
+    'password': '',
     'database': 'n1569631_pickmyrace'
 }
 
@@ -69,13 +69,14 @@ def drop_db():
 
 @app.route('/uploadpeserta', methods=['POST'])
 def upload_peserta():
-    global db_config
     try:
+        global db_config
         data = request.json
-        data_list = json.dumps(data['data'])
+        data_list = data['data']
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
-
+        cursor.execute("DELETE FROM data_pelari")
+        connection.commit()
         for entry in data_list:
             bib = entry['bib'] 
             firstName = entry['firstName'] 
@@ -97,10 +98,11 @@ def upload_peserta():
         connection.close()
         now = datetime.now()
         dt = now.strftime("%H:%M:%S")
-        
+
         return jsonify({'status': 'success', 'data': data_list,'date':dt})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+
 
 @app.route('/getdata_tagcheck', methods=['GET'])
 def get_datatag():
