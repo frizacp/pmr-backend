@@ -8,20 +8,20 @@ import mysql.connector
 import json
 from datetime import datetime
 import pandas as pd
-
+import requests
 
 app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-db_config = {
+db_config_2 = {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
     'database': 'n1569631_pickmyrace'
 }
 
-db_config_2 = {
+db_config = {
     'host': 'localhost',
     'user': 'root',
     'password': '',
@@ -260,6 +260,44 @@ def get_location():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/getmobile', methods=['POST'])
+def get_mobile():
+    global db_config
+    try:
+        url_base = request.args.get('url')
+        url = "https://"+url_base
+        response = (requests.get(url)).json()['data']
+
+        def insert_to_table(connection, table, bibNumber, finishtime):
+            cursor = connection.cursor()
+            # Query untuk memasukkan data ke tabel
+            query = f"INSERT IGNORE INTO {table} (bib, finishtime) VALUES (%s, %s)"
+            # Eksekusi query dengan parameter yang diberikan
+            cursor.execute(query, (bibNumber, finishtime))
+            # Commit perubahan ke database
+            connection.commit()
+            # Tutup kursor
+            cursor.close()
+
+        connection = mysql.connector.connect(**db_config)
+        tables = ["ws1","ws2","ws3","ws5","ws6","ws8","ws9","ws11"]
+
+        for record in response:
+            bibNumber = record['bibNumber']
+            # Memasukkan data ke masing-masing tabel
+            for table in tables:
+                finishtime = record.get(table, None)  # Mengambil nilai waktu dari tabel yang sesuai
+                if finishtime is not None:
+                    insert_to_table(connection, table, bibNumber, finishtime)
+        connection.close()
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+
+        return jsonify({'status': 'success', 'date':dt})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
 
 @app.route('/getdummy', methods=['GET'])
 def getdummy():
@@ -267,50 +305,59 @@ def getdummy():
     {
       "name": "Baim",
       "bibNumber": 5000,
-      "ws2": "00:05:00",
-      "ws3": "00:05:00",
+      "ws2": "00:02:00",
+      "ws3": "00:03:00",
       "ws5": "00:05:00",
-      "ws6": "00:05:00",
-      "ws8": "00:05:00",
-      "ws9": "00:05:00",
-      "ws11": "00:05:00"
+      "ws6": "00:06:00",
+      "ws8": "00:08:00",
+      "ws9": "00:09:00",
+      "ws11": "00:011:00"
     },
     {
       "name": "Baim A",
       "bibNumber": 5001,
-      "ws2": "00:05:00",
-      "ws3": "00:05:00",
-      "ws5": "00:05:00",
-      "ws6": "00:05:00",
-      "ws8": "00:05:00",
-      "ws9": "00:05:00",
-      "ws11": "00:05:00"
+      "ws2": "00:02:01",
+      "ws3": "00:03:01",
+      "ws5": "00:05:01",
+      "ws6": "00:06:01",
+      "ws8": "00:08:01",
+      "ws9": "00:09:01",
+      "ws11": "00:011:01"
     },
     {
       "name": "Baim B",
       "bibNumber": 5002,
-      "ws2": "00:05:00",
-      "ws3": "00:05:00",
-      "ws5": "00:05:00",
-      "ws6": "00:05:00",
-      "ws8": "00:05:00",
-      "ws9": "00:05:00",
-      "ws11": "00:05:00"
+      "ws2": "00:02:02",
+      "ws3": "00:03:02",
+      "ws5": "00:05:02",
+      "ws6": "00:06:02",
+      "ws8": "00:08:02",
+      "ws9": "00:09:02",
+      "ws11": "00:011:02"
     },
     {
       "name": "Baim V",
       "bibNumber": 5003,
-      "ws2": "00:05:00",
-      "ws3": "00:05:00",
-      "ws5": "00:05:00",
-      "ws6": "00:05:00",
-      "ws8": "00:05:00",
-      "ws9": "00:05:00",
-      "ws11": "00:05:00"
+      "ws2": "00:02:03",
+      "ws3": "00:03:03",
+      "ws5": "00:05:03",
+      "ws6": "00:06:03",
+      "ws8": "00:08:03",
+      "ws9": "00:09:03",
+      "ws11": "00:011:03"
+    },
+    {
+      "name": "Baim PP",
+      "bibNumber": 5004,
+      "ws2": "00:02:04",
+      "ws3": "00:03:04",
+      "ws5": "00:05:04",
+      "ws6": "00:06:04",
+      "ws8": "00:08:04",
+      "ws9": "00:09:04",
+      "ws11": "00:011:04"
     }
   ]
-
-
     return jsonify({'status': 'success', 'data': results})
 
 
