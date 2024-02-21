@@ -195,7 +195,7 @@ def get_alldata():
         connection.close()
 
         df = pd.DataFrame.from_dict(results)
-        df['count'] = df[['cp1', 'cp2', 'cp3', 'cp4', 'cp5', 'cp6', 'cp7', 'cp8', 'cp9', 'cp10','cp11','cp12','cp13','cp14','cp15',]].count(axis=1)
+        df['count'] = df[['ws1', 'ws2', 'ws3', 'ws4', 'ws5', 'ws6', 'ws7', 'ws8', 'ws9', 'ws10','ws11','ws12','ws13','ws14','ws15',]].count(axis=1)
         results_pandas = df.to_dict(orient='records')
 
         # Inisialisasi dictionary untuk menyimpan nilai unik kolom "contest"
