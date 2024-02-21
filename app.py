@@ -14,14 +14,14 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-db_config_2 = {
+db_config = {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
     'database': 'n1569631_pickmyrace'
 }
 
-db_config = {
+db_config_2 = {
     'host': 'localhost',
     'user': 'root',
     'password': '',
@@ -152,38 +152,38 @@ def get_alldata():
         query = '''
             SELECT data_pelari.bib, data_pelari.firstName,data_pelari.gender,data_pelari.contest,data_pelari.category,data_pelari.race,
             finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace,
-            cp1.finishtime AS cp1,
-            cp2.finishtime AS cp2,
-            cp3.finishtime AS cp3,
-            cp4.finishtime AS cp4,
-            cp5.finishtime AS cp5,
-            cp6.finishtime AS cp6,
-            cp7.finishtime AS cp7,
-            cp8.finishtime AS cp8,
-            cp9.finishtime AS cp9,
-            cp10.finishtime AS cp10,
-            cp11.finishtime AS cp11,
-            cp12.finishtime AS cp12,
-            cp13.finishtime AS cp13,
-            cp14.finishtime AS cp14,
-            cp15.finishtime AS cp15
+            ws1.finishtime AS ws1,
+            ws2.finishtime AS ws2,
+            ws3.finishtime AS ws3,
+            ws4.finishtime AS ws4,
+            ws5.finishtime AS ws5,
+            ws6.finishtime AS ws6,
+            ws7.finishtime AS ws7,
+            ws8.finishtime AS ws8,
+            ws9.finishtime AS ws9,
+            ws10.finishtime AS ws10,
+            ws11.finishtime AS ws11,
+            ws12.finishtime AS ws12,
+            ws13.finishtime AS ws13,
+            ws14.finishtime AS ws14,
+            ws15.finishtime AS ws15
             FROM data_pelari 
             LEFT JOIN finish ON data_pelari.bib=finish.bib 
-            LEFT JOIN cp1 ON data_pelari.bib=cp1.bib 
-            LEFT JOIN cp2 ON data_pelari.bib=cp2.bib 
-            LEFT JOIN cp3 ON data_pelari.bib=cp3.bib 
-            LEFT JOIN cp4 ON data_pelari.bib=cp4.bib
-            LEFT JOIN cp5 ON data_pelari.bib=cp5.bib
-            LEFT JOIN cp6 ON data_pelari.bib=cp6.bib
-            LEFT JOIN cp7 ON data_pelari.bib=cp7.bib
-            LEFT JOIN cp8 ON data_pelari.bib=cp8.bib
-            LEFT JOIN cp9 ON data_pelari.bib=cp9.bib
-            LEFT JOIN cp10 ON data_pelari.bib=cp10.bib
-            LEFT JOIN cp11 ON data_pelari.bib=cp11.bib
-            LEFT JOIN cp12 ON data_pelari.bib=cp12.bib
-            LEFT JOIN cp13 ON data_pelari.bib=cp13.bib
-            LEFT JOIN cp14 ON data_pelari.bib=cp14.bib
-            LEFT JOIN cp15 ON data_pelari.bib=cp15.bib
+            LEFT JOIN ws1 ON data_pelari.bib=ws1.bib 
+            LEFT JOIN ws2 ON data_pelari.bib=ws2.bib 
+            LEFT JOIN ws3 ON data_pelari.bib=ws3.bib 
+            LEFT JOIN ws4 ON data_pelari.bib=ws4.bib
+            LEFT JOIN ws5 ON data_pelari.bib=ws5.bib
+            LEFT JOIN ws6 ON data_pelari.bib=ws6.bib
+            LEFT JOIN ws7 ON data_pelari.bib=ws7.bib
+            LEFT JOIN ws8 ON data_pelari.bib=ws8.bib
+            LEFT JOIN ws9 ON data_pelari.bib=ws9.bib
+            LEFT JOIN ws10 ON data_pelari.bib=ws10.bib
+            LEFT JOIN ws11 ON data_pelari.bib=ws11.bib
+            LEFT JOIN ws12 ON data_pelari.bib=ws12.bib
+            LEFT JOIN ws13 ON data_pelari.bib=ws13.bib
+            LEFT JOIN ws14 ON data_pelari.bib=ws14.bib
+            LEFT JOIN ws15 ON data_pelari.bib=ws15.bib
         '''
 
         cursor.execute(query)
