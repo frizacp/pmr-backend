@@ -260,5 +260,59 @@ def get_location():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+
+@app.route('/getdummy', methods=['GET'])
+def getdummy():
+    results = [
+    {
+      "name": "Baim",
+      "bibNumber": 5000,
+      "ws2": "00:05:00",
+      "ws3": "00:05:00",
+      "ws5": "00:05:00",
+      "ws6": "00:05:00",
+      "ws8": "00:05:00",
+      "ws9": "00:05:00",
+      "ws11": "00:05:00"
+    },
+    {
+      "name": "Baim A",
+      "bibNumber": 5001,
+      "ws2": "00:05:00",
+      "ws3": "00:05:00",
+      "ws5": "00:05:00",
+      "ws6": "00:05:00",
+      "ws8": "00:05:00",
+      "ws9": "00:05:00",
+      "ws11": "00:05:00"
+    },
+    {
+      "name": "Baim B",
+      "bibNumber": 5002,
+      "ws2": "00:05:00",
+      "ws3": "00:05:00",
+      "ws5": "00:05:00",
+      "ws6": "00:05:00",
+      "ws8": "00:05:00",
+      "ws9": "00:05:00",
+      "ws11": "00:05:00"
+    },
+    {
+      "name": "Baim V",
+      "bibNumber": 5003,
+      "ws2": "00:05:00",
+      "ws3": "00:05:00",
+      "ws5": "00:05:00",
+      "ws6": "00:05:00",
+      "ws8": "00:05:00",
+      "ws9": "00:05:00",
+      "ws11": "00:05:00"
+    }
+  ]
+
+
+    return jsonify({'status': 'success', 'data': results})
+
+
 if __name__ == '__main__':
     app.run(debug=True)
