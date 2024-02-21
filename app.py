@@ -8,7 +8,6 @@ import mysql.connector
 import json
 from datetime import datetime
 import pandas as pd
-import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -264,10 +263,8 @@ def get_location():
 def get_mobile():
     global db_config
     try:
-        url_base = request.args.get('url')
-        url = "https://"+url_base
-        response = (requests.get(url)).json()['data']
-
+        data = request.json
+        data_list = data['data']
         def insert_to_table(connection, table, bibNumber, finishtime):
             cursor = connection.cursor()
             # Query untuk memasukkan data ke tabel
@@ -282,7 +279,7 @@ def get_mobile():
         connection = mysql.connector.connect(**db_config)
         tables = ["ws1","ws2","ws3","ws5","ws6","ws8","ws9","ws11"]
 
-        for record in response:
+        for record in data_list:
             bibNumber = record['bibNumber']
             # Memasukkan data ke masing-masing tabel
             for table in tables:
