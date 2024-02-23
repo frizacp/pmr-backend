@@ -13,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-db_config_3 = {
+db_config = {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
@@ -27,7 +27,7 @@ db_config_2 = {
     'database': 'n1569631_pickmyrace'
 }
 
-db_config = {
+db_config_4 = {
     'host': '156.67.213.247',
     'user': 'n1569631_admintagcheck',
     'password': 'Ohno210500!',
@@ -127,7 +127,7 @@ def get_datatag():
         cursor = connection.cursor(dictionary=True)
 
         query = '''
-            SELECT data_pelari.chipcode, finish.finishtime, finish.chiptime, finish.pace
+            SELECT data_pelari.race, data_pelari.chipcode, finish.finishtime, finish.chiptime, finish.pace
             FROM data_pelari
             LEFT JOIN finish ON data_pelari.bib=finish.bib
         '''
@@ -156,7 +156,7 @@ def get_alldata():
         cursor = connection.cursor(dictionary=True)
 
         query = '''
-            SELECT data_pelari.bib, data_pelari.firstName,data_pelari.gender,data_pelari.contest,data_pelari.category,data_pelari.race,
+            SELECT data_pelari.bib, data_pelari.firstName,data_pelari.gender,data_pelari.contest,
             finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace,
             ws1.finishtime AS ws1,
             ws2.finishtime AS ws2,
@@ -169,10 +169,7 @@ def get_alldata():
             ws9.finishtime AS ws9,
             ws10.finishtime AS ws10,
             ws11.finishtime AS ws11,
-            ws12.finishtime AS ws12,
-            ws13.finishtime AS ws13,
-            ws14.finishtime AS ws14,
-            ws15.finishtime AS ws15
+            ws12.finishtime AS ws12
             FROM data_pelari 
             LEFT JOIN finish ON data_pelari.bib=finish.bib 
             LEFT JOIN ws1 ON data_pelari.bib=ws1.bib 
@@ -187,9 +184,6 @@ def get_alldata():
             LEFT JOIN ws10 ON data_pelari.bib=ws10.bib
             LEFT JOIN ws11 ON data_pelari.bib=ws11.bib
             LEFT JOIN ws12 ON data_pelari.bib=ws12.bib
-            LEFT JOIN ws13 ON data_pelari.bib=ws13.bib
-            LEFT JOIN ws14 ON data_pelari.bib=ws14.bib
-            LEFT JOIN ws15 ON data_pelari.bib=ws15.bib
         '''
 
         cursor.execute(query)
@@ -202,7 +196,7 @@ def get_alldata():
         connection.close()
 
         df = pd.DataFrame.from_dict(results)
-        df['count'] = df[['ws1', 'ws2', 'ws3', 'ws4', 'ws5', 'ws6', 'ws7', 'ws8', 'ws9', 'ws10','ws11','ws12','ws13','ws14','ws15',]].count(axis=1)
+        df['count'] = df[['ws1', 'ws2', 'ws3', 'ws4', 'ws5', 'ws6', 'ws7', 'ws8', 'ws9', 'ws10','ws11','ws12']].count(axis=1)
         results_pandas = df.to_dict(orient='records')
 
         # Inisialisasi dictionary untuk menyimpan nilai unik kolom "contest"
