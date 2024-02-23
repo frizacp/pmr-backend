@@ -27,7 +27,7 @@ db_config_2 = {
     'database': 'n1569631_pickmyrace'
 }
 
-db_config_4 = {
+db_config_9 = {
     'host': '156.67.213.247',
     'user': 'n1569631_admintagcheck',
     'password': 'Ohno210500!',
@@ -196,6 +196,7 @@ def get_alldata():
         connection.close()
 
         df = pd.DataFrame.from_dict(results)
+        df = df.fillna('')
         df['count'] = df[['ws1', 'ws2', 'ws3', 'ws4', 'ws5', 'ws6', 'ws7', 'ws8', 'ws9', 'ws10','ws11','ws12']].count(axis=1)
         results_pandas = df.to_dict(orient='records')
 
