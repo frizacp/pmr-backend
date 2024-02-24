@@ -280,7 +280,7 @@ def get_mobile():
             cursor.close()
 
         connection = mysql.connector.connect(**db_config)
-        tables = ["ws1","ws2","ws3","ws5","ws6","ws8","ws9","ws11"]
+        tables = ["ws1","ws2","ws3","ws5","ws6","ws8","ws9","ws11","ws12"]
 
         for record in data_list:
             bibNumber = record['bibNumber']
@@ -304,7 +304,7 @@ def getdummy():
     results = [
     {
       "name": "Baim",
-      "bibNumber": 5000,
+      "bibNumber": 1,
       "ws2": "00:02:00",
       "ws3": "00:03:00",
       "ws5": "00:05:00",
@@ -315,7 +315,7 @@ def getdummy():
     },
     {
       "name": "Baim A",
-      "bibNumber": 5001,
+      "bibNumber": 58,
       "ws2": "00:02:01",
       "ws3": "00:03:01",
       "ws5": "00:05:01",
@@ -326,7 +326,7 @@ def getdummy():
     },
     {
       "name": "Baim B",
-      "bibNumber": 5002,
+      "bibNumber": 2,
       "ws2": "00:02:02",
       "ws3": "00:03:02",
       "ws5": "00:05:02",
@@ -337,7 +337,7 @@ def getdummy():
     },
     {
       "name": "Baim V",
-      "bibNumber": 5003,
+      "bibNumber": 3,
       "ws2": "00:02:03",
       "ws3": "00:03:03",
       "ws5": "00:05:03",
@@ -348,7 +348,7 @@ def getdummy():
     },
     {
       "name": "Baim PP",
-      "bibNumber": 5004,
+      "bibNumber": 4,
       "ws2": "00:02:04",
       "ws3": "00:03:04",
       "ws5": "00:05:04",
