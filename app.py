@@ -13,14 +13,14 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-db_config = {
+db_config= {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
     'database': 'n1569631_pickmyrace'
 }
 
-db_config_2 = {
+db_config_00 = {
     'host': 'localhost',
     'user': 'root',
     'password': '',
@@ -266,7 +266,8 @@ def get_location():
 def get_mobile():
     global db_config
     try:
-        data_list = request.json
+        data_list = request.json['data']
+        print(data_list)
         def insert_to_table(connection, table, bibNumber, finishtime):
             cursor = connection.cursor()
             # Query untuk memasukkan data ke tabel
@@ -279,7 +280,7 @@ def get_mobile():
             cursor.close()
 
         connection = mysql.connector.connect(**db_config)
-        tables = ["ws1","ws2","ws3","ws5","ws6","ws8","ws9","ws11","ws12"]
+        tables = ["ws11", "ws2", "ws3", "ws5", "ws6", "ws8", "ws9"]
 
         for record in data_list:
             bibNumber = record['bibNumber']
