@@ -266,8 +266,7 @@ def get_location():
 def get_mobile():
     global db_config
     try:
-        data = request.json
-        data_list = data['data']
+        data_list = request.json
         def insert_to_table(connection, table, bibNumber, finishtime):
             cursor = connection.cursor()
             # Query untuk memasukkan data ke tabel
