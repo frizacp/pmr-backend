@@ -13,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-db_config= {
+db_config_0= {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
@@ -27,7 +27,7 @@ db_config_00 = {
     'database': 'n1569631_pickmyrace'
 }
 
-db_config_popo = {
+db_config = {
     'host': '156.67.213.247',
     'user': 'n1569631_admintagcheck',
     'password': 'Ohno210500!',
@@ -149,6 +149,7 @@ def get_datatag():
 
 @app.route('/getdata_all', methods=['GET'])
 def get_alldata():
+    type = request.args.get('type')
     global db_config
     try:
         # Membuat koneksi ke database
@@ -208,72 +209,10 @@ def get_alldata():
         unique_contests = set(contest_values)
         now = datetime.now()
         dt = now.strftime("%H:%M:%S")
-        return jsonify({'status': 'success', 'data': results_pandas,'date':dt ,'list_contest':list(unique_contests)})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
-
-@app.route('/getdata_wordpress', methods=['GET'])
-def get_wordpress():
-    global db_config
-    try:
-        # Membuat koneksi ke database
-        connection = mysql.connector.connect(**db_config)
-        cursor = connection.cursor(dictionary=True)
-
-        query = '''
-            SELECT data_pelari.bib, data_pelari.firstName,data_pelari.gender,data_pelari.contest,
-            finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace,
-            ws1.finishtime AS ws1,
-            ws2.finishtime AS ws2,
-            ws3.finishtime AS ws3,
-            ws4.finishtime AS ws4,
-            ws5.finishtime AS ws5,
-            ws6.finishtime AS ws6,
-            ws7.finishtime AS ws7,
-            ws8.finishtime AS ws8,
-            ws9.finishtime AS ws9,
-            ws10.finishtime AS ws10,
-            ws11.finishtime AS ws11,
-            ws12.finishtime AS ws12
-            FROM data_pelari 
-            LEFT JOIN finish ON data_pelari.bib=finish.bib 
-            LEFT JOIN ws1 ON data_pelari.bib=ws1.bib 
-            LEFT JOIN ws2 ON data_pelari.bib=ws2.bib 
-            LEFT JOIN ws3 ON data_pelari.bib=ws3.bib 
-            LEFT JOIN ws4 ON data_pelari.bib=ws4.bib
-            LEFT JOIN ws5 ON data_pelari.bib=ws5.bib
-            LEFT JOIN ws6 ON data_pelari.bib=ws6.bib
-            LEFT JOIN ws7 ON data_pelari.bib=ws7.bib
-            LEFT JOIN ws8 ON data_pelari.bib=ws8.bib
-            LEFT JOIN ws9 ON data_pelari.bib=ws9.bib
-            LEFT JOIN ws10 ON data_pelari.bib=ws10.bib
-            LEFT JOIN ws11 ON data_pelari.bib=ws11.bib
-            LEFT JOIN ws12 ON data_pelari.bib=ws12.bib
-        '''
-
-        cursor.execute(query)
-
-        # Mengambil semua hasil query
-        results = cursor.fetchall()
-
-        # Menutup kursor dan koneksi
-        cursor.close()
-        connection.close()
-
-        df = pd.DataFrame.from_dict(results)
-        
-        df['count'] = df[['ws1', 'ws2', 'ws3', 'ws4', 'ws5', 'ws6', 'ws7', 'ws8', 'ws9', 'ws10','ws11','ws12']].count(axis=1)
-        df = df.fillna('')
-        results_pandas = df.to_dict(orient='records')
-
-        # Inisialisasi dictionary untuk menyimpan nilai unik kolom "contest"
-        contest_values = [row['contest'] for row in results]
-
-        # Mengonversi list menjadi set untuk mendapatkan nilai unik
-        unique_contests = set(contest_values)
-        now = datetime.now()
-        dt = now.strftime("%H:%M:%S")
-        return jsonify(results_pandas)
+        if type == "wp":
+            return results_pandas
+        if type == "react":
+            return jsonify({'status': 'success', 'data': results_pandas,'date':dt ,'list_contest':list(unique_contests)})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
     
