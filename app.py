@@ -13,99 +13,131 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-db_config= {
+db_config_0= {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
-    'database': 'n1569631_pickmyrace'
+    'database': 'n1569631_livepmrnew'
 }
 
-db_config_00 = {
+db_config = {
     'host': 'localhost',
-    'user': 'root',
-    'password': '',
-    'database': 'n1569631_pickmyrace'
+    'user': 'n1569631_admin',
+    'password': 'Ohno210500!',
+    'database': 'n1569631_livepmrnew'
 }
 
-db_config_9 = {
+db_config2 = {
     'host': '156.67.213.247',
-    'user': 'n1569631_admintagcheck',
+    'user': 'n1569631_admin',
     'password': 'Ohno210500!',
-    'database': 'n1569631_pickmyrace'
+    'database': 'n1569631_livepmrnew'
 }
+
+
+@app.route('/getinfodevice', methods=['GET'])
+def getinfodevice():
+    global db_config
+    id = request.args.get('id')
+    try:
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        insert_query = f'SELECT * FROM laptop_info WHERE id = {id}'
+        cursor.execute(insert_query)
+        results = cursor.fetchall()
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+
+        return jsonify({'status': 'success', 'data': results,'date':dt})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 @app.route('/uploadresult', methods=['POST'])
 def upload_result():
-    global db_config
-    data = request.json
-    data_list = json.loads(data['data'])
-    type = data['type']
+    try:
+        global db_config
+        data = request.json
+        data_list = json.loads(data['data'])
+        position = data['position']
+        race = data['race']
+        db_configuration = db_config
+        connection = mysql.connector.connect(**db_configuration)
+        cursor = connection.cursor()
 
-    connection = mysql.connector.connect(**db_config)
-    cursor = connection.cursor()
+        bib_numbers = [entry['Bib #'] for entry in data_list]
+        finishing_times = [entry['Finishing Time'] for entry in data_list]
+        chip_times = [entry['Chip Time'] for entry in data_list]
+        overall_places = [entry['Overall Place'] for entry in data_list]
+        division_places = [entry['Division Place'] for entry in data_list]
+        paces_per_kilometer = [entry['Pace per kilometer'] for entry in data_list]
+        change_date = datetime.now().strftime("%H:%M:%S")
 
-    for entry in data_list:
-        bib_number = entry['Bib #']
-        finishing_time = entry['Finishing Time']
-        chip_time = entry['Chip Time']
-        overall_place = entry['Overall Place']
-        divison_place = entry['Division Place']
-        pace_per_kilometer = entry['Pace per kilometer']
+        insert_query = f"INSERT IGNORE INTO {position} (`bib`, `finishtime`,`chiptime`, `overallplace`, `divisionplace`, `pace`, `race`, `change_date`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        values = [(bib_number, finishing_time, chip_time, overall_place, divison_place, pace_per_kilometer, race, change_date) 
+                for bib_number, finishing_time, chip_time, overall_place, divison_place, pace_per_kilometer 
+                in zip(bib_numbers, finishing_times, chip_times, overall_places, division_places, paces_per_kilometer)]
 
-        
-        insert_query = f"INSERT IGNORE INTO {type} (`bib`, `finishtime`,`chiptime`, `overallplace`, `divisionplace`, `pace`) VALUES (%s, %s, %s, %s, %s, %s)"
-        cursor.execute(insert_query, (bib_number, finishing_time,chip_time,overall_place,divison_place, pace_per_kilometer))
+        cursor.executemany(insert_query, values)
 
-    connection.commit()
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'status': 'success','date':change_date})
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
-
-    cursor.close()
-    connection.close()
-
-    return '200'
 
 @app.route('/drop', methods=['GET'])
 def drop_db():
-    type = request.args.get('type')
-    global db_config
+    try:
+        global db_config
+        type = request.args.get('type')
+        race = request.args.get('race')
+        
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+        insert_query = f"DELETE FROM {type} WHERE race = '{race}'"
+        cursor.execute(insert_query)
 
-    connection = mysql.connector.connect(**db_config)
-    cursor = connection.cursor()
-    insert_query = f"DELETE FROM {type}"
-    cursor.execute(insert_query)
-
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-    return '200'
+        connection.commit()
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+        cursor.close()
+        connection.close()
+        return jsonify({'status': 'success','date':dt})
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/uploadpeserta', methods=['POST'])
 def upload_peserta():
     try:
         global db_config
         data = request.json
+        race = request.args.get('race')
         data_list = data['data']
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
-        cursor.execute("DELETE FROM data_pelari")
-        connection.commit()
-        for entry in data_list:
-            bib = entry['bib'] 
-            firstName = entry['firstName'] 
-            lastName = entry['lastName'] 
-            gender = entry['gender'] 
-            type = entry['type'] 
-            dob = entry['dob'] 
-            age = entry['age'] 
-            contest = entry['contest'] 
-            category = entry['category'] 
-            race = entry['race'] 
-            chipcode = entry['chipcode'] 
-            insert_query = f"INSERT IGNORE INTO data_pelari (`bib`, `firstName`, `lastName`, `gender`,`type`,`dob`,`age`,`contest`,`category`,`race`,`chipcode`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(insert_query, (bib,firstName,lastName,gender,type,dob,age,contest,category,race,chipcode))
 
+        # Hapus semua data peserta untuk perlombaan yang diberikan sebelumnya
+        cursor.execute("DELETE FROM info_peserta WHERE race = %s", (race,))
+        connection.commit()
+
+        # Ekstrak semua nilai peserta ke dalam tupel
+        values = [(entry['bib'], entry['firstName'], entry['lastName'], entry['gender'], entry['type'], 
+                   entry['dob'], entry['age'], entry['contest'], entry['category'], entry['race'], 
+                   entry['chipcode']) for entry in data_list]
+
+        # Masukkan semua nilai peserta ke dalam tabel info_peserta
+        insert_query = "INSERT IGNORE INTO info_peserta (`bib`, `firstName`, `lastName`, `gender`,`type`,`dob`,`age`,`contest`,`category`,`race`,`chipcode`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.executemany(insert_query, values)
         connection.commit()
 
         cursor.close()
@@ -113,7 +145,7 @@ def upload_peserta():
         now = datetime.now()
         dt = now.strftime("%H:%M:%S")
 
-        return jsonify({'status': 'success', 'data': data_list,'date':dt})
+        return jsonify({'status': 'success', 'data': data_list, 'date': dt})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
@@ -121,16 +153,13 @@ def upload_peserta():
 @app.route('/getdata_tagcheck', methods=['GET'])
 def get_datatag():
     global db_config
+    race = request.args.get('race')
     try:
         # Membuat koneksi ke database
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
-        query = '''
-            SELECT data_pelari.race, data_pelari.chipcode, finish.finishtime, finish.chiptime, finish.pace
-            FROM data_pelari
-            LEFT JOIN finish ON data_pelari.bib=finish.bib
-        '''
+        query = f"SELECT info_peserta.race, info_peserta.chipcode, finish.finishtime, finish.chiptime, finish.pace FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib WHERE info_peserta.race ='{race}'"
 
         cursor.execute(query)
 
@@ -149,43 +178,14 @@ def get_datatag():
 
 @app.route('/getdata_all', methods=['GET'])
 def get_alldata():
-    type = request.args.get('type')
     global db_config
+    race = request.args.get('race')
     try:
         # Membuat koneksi ke database
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
-        query = '''
-            SELECT data_pelari.bib, data_pelari.firstName,data_pelari.gender,data_pelari.contest,
-            finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace,
-            ws1.finishtime AS ws1,
-            ws2.finishtime AS ws2,
-            ws3.finishtime AS ws3,
-            ws4.finishtime AS ws4,
-            ws5.finishtime AS ws5,
-            ws6.finishtime AS ws6,
-            ws7.finishtime AS ws7,
-            ws8.finishtime AS ws8,
-            ws9.finishtime AS ws9,
-            ws10.finishtime AS ws10,
-            ws11.finishtime AS ws11,
-            ws12.finishtime AS ws12
-            FROM data_pelari 
-            LEFT JOIN finish ON data_pelari.bib=finish.bib 
-            LEFT JOIN ws1 ON data_pelari.bib=ws1.bib 
-            LEFT JOIN ws2 ON data_pelari.bib=ws2.bib 
-            LEFT JOIN ws3 ON data_pelari.bib=ws3.bib 
-            LEFT JOIN ws4 ON data_pelari.bib=ws4.bib
-            LEFT JOIN ws5 ON data_pelari.bib=ws5.bib
-            LEFT JOIN ws6 ON data_pelari.bib=ws6.bib
-            LEFT JOIN ws7 ON data_pelari.bib=ws7.bib
-            LEFT JOIN ws8 ON data_pelari.bib=ws8.bib
-            LEFT JOIN ws9 ON data_pelari.bib=ws9.bib
-            LEFT JOIN ws10 ON data_pelari.bib=ws10.bib
-            LEFT JOIN ws11 ON data_pelari.bib=ws11.bib
-            LEFT JOIN ws12 ON data_pelari.bib=ws12.bib
-        '''
+        query = f"SELECT info_peserta.bib, info_peserta.firstName,info_peserta.gender,info_peserta.contest,info_peserta.race, finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace, cp1.finishtime AS cp1, cp2.finishtime AS cp2, cp3.finishtime AS cp3, cp4.finishtime AS cp4 FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib LEFT JOIN cp1 ON info_peserta.bib=cp1.bib LEFT JOIN cp2 ON info_peserta.bib=cp2.bib LEFT JOIN cp3 ON info_peserta.bib=cp3.bib LEFT JOIN cp4 ON info_peserta.bib=cp4.bib WHERE info_peserta.race = '{race}'"
 
         cursor.execute(query)
 
@@ -195,38 +195,26 @@ def get_alldata():
         # Menutup kursor dan koneksi
         cursor.close()
         connection.close()
-
-        df = pd.DataFrame.from_dict(results)
-        
-        df['count'] = df[['ws1', 'ws2', 'ws3', 'ws4', 'ws5', 'ws6', 'ws7', 'ws8', 'ws9', 'ws10','ws11','ws12']].count(axis=1)
-        df = df.fillna('')
-        results_pandas = df.to_dict(orient='records')
-
-        # Inisialisasi dictionary untuk menyimpan nilai unik kolom "contest"
-        contest_values = [row['contest'] for row in results]
-
-        # Mengonversi list menjadi set untuk mendapatkan nilai unik
-        unique_contests = set(contest_values)
         now = datetime.now()
         dt = now.strftime("%H:%M:%S")
-        if type == "wp":
-            return results_pandas
-        if type == "react":
-            return jsonify({'status': 'success', 'data': results_pandas,'date':dt ,'list_contest':list(unique_contests)})
+
+        return jsonify({'status': 'success', 'data': results,'date':dt})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+    
     
 
 @app.route('/getdata', methods=['GET'])
 def get_data():
     global db_config
     type = request.args.get('type')
+    race = request.args.get('race')
     try:
         # Membuat koneksi ke database
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
-        query = f"SELECT * FROM {type}"
+        query = f"SELECT * FROM {type} WHERE race ='{race}'"
         cursor.execute(query)
 
         # Mengambil semua hasil query
@@ -242,64 +230,6 @@ def get_data():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
     
-@app.route('/getlocation', methods=['GET'])
-def get_location():
-    global db_config
-    try:
-        # Membuat koneksi ke database
-        connection = mysql.connector.connect(**db_config)
-        cursor = connection.cursor(dictionary=True)
-
-        query = "SELECT * FROM counter_lokasi"
-        cursor.execute(query)
-
-        # Mengambil semua hasil query
-        results = cursor.fetchall()
-
-        # Menutup kursor dan koneksi
-        cursor.close()
-        connection.close()
-        now = datetime.now()
-        dt = now.strftime("%H:%M:%S")
-
-        return jsonify({'status': 'success', 'data': results,'date':dt})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
-
-@app.route('/getmobile', methods=['POST'])
-def get_mobile():
-    global db_config
-    try:
-        data_list = request.json['data']
-        print(data_list)
-        def insert_to_table(connection, table, bibNumber, finishtime):
-            cursor = connection.cursor()
-            # Query untuk memasukkan data ke tabel
-            query = f"INSERT IGNORE INTO {table} (bib, finishtime) VALUES (%s, %s)"
-            # Eksekusi query dengan parameter yang diberikan
-            cursor.execute(query, (bibNumber, finishtime))
-            # Commit perubahan ke database
-            connection.commit()
-            # Tutup kursor
-            cursor.close()
-
-        connection = mysql.connector.connect(**db_config)
-        tables = ["ws11", "ws2", "ws3", "ws5", "ws6", "ws8", "ws9"]
-
-        for record in data_list:
-            bibNumber = record['bibNumber']
-            # Memasukkan data ke masing-masing tabel
-            for table in tables:
-                finishtime = record.get(table, None)  # Mengambil nilai waktu dari tabel yang sesuai
-                if finishtime is not None:
-                    insert_to_table(connection, table, bibNumber, finishtime)
-        connection.close()
-        now = datetime.now()
-        dt = now.strftime("%H:%M:%S")
-
-        return jsonify({'status': 'success', 'date':dt})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
 
 
 
