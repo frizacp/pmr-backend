@@ -27,7 +27,7 @@ db_config = {
     'database': 'n1569631_livepmrnew'
 }
 
-db_config2 = {
+db_config3 = {
     'host': '156.67.213.247',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
@@ -185,7 +185,7 @@ def get_alldata():
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
-        query = f"SELECT info_peserta.bib, info_peserta.firstName,info_peserta.gender,info_peserta.contest,info_peserta.race, finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace, cp1.finishtime AS cp1, cp2.finishtime AS cp2, cp3.finishtime AS cp3, cp4.finishtime AS cp4 FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib LEFT JOIN cp1 ON info_peserta.bib=cp1.bib LEFT JOIN cp2 ON info_peserta.bib=cp2.bib LEFT JOIN cp3 ON info_peserta.bib=cp3.bib LEFT JOIN cp4 ON info_peserta.bib=cp4.bib WHERE info_peserta.race = '{race}'"
+        query = f"SELECT info_peserta.bib, info_peserta.firstName, info_peserta.gender, info_peserta.contest, info_peserta.race, COALESCE(finish.finishtime, '') AS finishtime, COALESCE(finish.chiptime, '') AS chiptime, COALESCE(finish.overallplace, 9999) AS overallplace, COALESCE(finish.divisionplace, '') AS divisionplace, COALESCE(finish.pace, '') AS pace, COALESCE(cp1.finishtime, '') AS cp1, COALESCE(cp2.finishtime, '') AS cp2, COALESCE(cp3.finishtime, '') AS cp3, COALESCE(cp4.finishtime, '') AS cp4 FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib LEFT JOIN cp1 ON info_peserta.bib=cp1.bib LEFT JOIN cp2 ON info_peserta.bib=cp2.bib LEFT JOIN cp3 ON info_peserta.bib=cp3.bib LEFT JOIN cp4 ON info_peserta.bib=cp4.bib WHERE info_peserta.race = '{race}'"
 
         cursor.execute(query)
 
