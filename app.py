@@ -40,10 +40,10 @@ db_data ='n1569631_pmr_live_'
 def getinfodevice():
     global db_config
     id = request.args.get('id')
+    db_config['database'] = 'n1569631_livepmrnew'
     try:
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
-
         insert_query = f'SELECT * FROM laptop_info WHERE id = {id}'
         cursor.execute(insert_query)
         results = cursor.fetchall()
