@@ -8,6 +8,9 @@ import mysql.connector
 import json
 from datetime import datetime
 import pandas as pd
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+import openpyxl as xl
 
 app = Flask(__name__)
 CORS(app)
@@ -27,7 +30,7 @@ db_config = {
     'database': 'n1569631_livepmrnew'
 }
 
-db_config9 = {
+db_config2 = {
     'host': '156.67.213.247',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
@@ -126,8 +129,57 @@ def drop_db():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/updatepeserta', methods=['GET'])
+def update_peserta():
+    try:
+        global db_config
+        global db_data
+        race = request.args.get('race')
+        
+        # Ambil Data
+        if race == 'kediri':
+            id_race = 2
+        if race == 'medan':
+            id_race = 3
+
+        scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name("system/credential.json", scope)
+        client = gspread.authorize(creds)
+        sheet_tagcheck = client.open('Data Peserta PMR').get_worksheet(id_race)
+        data_tagcheck = sheet_tagcheck.get_all_records(numericise_ignore=[11])
+        data_post = {'data': data_tagcheck}
+        data_list = data_post['data']
+
+
+        db_config['database'] = f'{db_data}{race}'
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+
+        # Hapus semua data peserta untuk perlombaan yang diberikan sebelumnya
+        cursor.execute("DELETE FROM info_peserta WHERE race = %s", (race,))
+        connection.commit()
+
+        # Ekstrak semua nilai peserta ke dalam tupel
+        values = [(entry['bib'],(str(entry['race'])+"_"+str(entry['bib'])), entry['firstName'], entry['lastName'], entry['gender'], entry['type'], 
+                   entry['dob'], entry['age'], entry['contest'], entry['category'], entry['race'], 
+                   entry['chipcode']) for entry in data_list]
+
+        # Masukkan semua nilai peserta ke dalam tabel info_peserta
+        insert_query = "INSERT IGNORE INTO info_peserta (`bib`,`code`, `firstName`, `lastName`, `gender`,`type`,`dob`,`age`,`contest`,`category`,`race`,`chipcode`) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.executemany(insert_query, values)
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+
+        return jsonify({'status': 'success', 'data': data_list, 'date': dt})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
 @app.route('/uploadpeserta', methods=['POST'])
-def upload_peserta():
+def uploadpeserta():
     try:
         global db_config
         global db_data
