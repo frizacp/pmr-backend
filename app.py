@@ -273,7 +273,86 @@ def get_data():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/uploadfixresult', methods=['POST'])
+def uploadfixresult():
+    try:
+        global db_config
+        global db_data
+        data = request.json
+        data_list = json.loads(data['data'])
+        race = data['race']
+        category_slug = data['category']
+        db_config['database'] = f'{db_data}{race}'
+        db_configuration = db_config
 
+        
+        connection = mysql.connector.connect(**db_configuration)
+        cursor = connection.cursor()
+
+        insert_query = f"DELETE FROM result WHERE RACENAME = '{category_slug}'"
+        cursor.execute(insert_query)
+        connection.commit()
+
+        BIB = [entry['BIB'] for entry in data_list]
+        NAME = [entry['NAME'] for entry in data_list]
+        GENDER = [entry['GENDER'] for entry in data_list]
+        CATEGORY = [entry['CATEGORY'] for entry in data_list]
+        POSOVERALL = [entry['OVERALL POSITION'] for entry in data_list]
+        POSCATEGORY = [entry['CATEGORY POSITION'] for entry in data_list]
+        POSGENDER = [entry['GENDER POSITION'] for entry in data_list]
+        FINISHTIME= [entry['FINISH TIME'] for entry in data_list]
+        PACE= [entry['PACE'] for entry in data_list]
+        CERTIFICATE= [entry['CERTIFICATE'] for entry in data_list]
+        RACENAME= [entry['RACE NAME'] for entry in data_list]
+        STATUS = [entry['STATUS'] for entry in data_list]
+
+
+        change_date = datetime.now().strftime("%H:%M:%S")
+
+        insert_query = f"INSERT IGNORE INTO result (`BIB`,`NAME`,`GENDER`,`CATEGORY`,`POSOVERALL`,`POSCATEGORY`,`POSGENDER`,`FINISHTIME`,`PACE`,`CERTIFICATE`,`RACENAME`,`STATUS`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
+        values = [(BIB,NAME,GENDER,CATEGORY,POSOVERALL,POSCATEGORY,POSGENDER,FINISHTIME,PACE,CERTIFICATE,RACENAME,STATUS) 
+                for BIB,NAME,GENDER,CATEGORY,POSOVERALL,POSCATEGORY,POSGENDER,FINISHTIME,PACE,CERTIFICATE,RACENAME,STATUS
+                in zip(BIB,NAME,GENDER,CATEGORY,POSOVERALL,POSCATEGORY,POSGENDER,FINISHTIME,PACE,CERTIFICATE,RACENAME,STATUS)]
+
+        cursor.executemany(insert_query, values)
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'status': 'success', 'date': change_date})
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+@app.route('/getcot', methods=['GET'])
+def get_cot():
+    global db_config
+    global db_data
+    race = request.args.get('race')
+    category = request.args.get('category')
+    db_config['database'] = f'{db_data}{race}'
+    try:
+        # Membuat koneksi ke database
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        query = f"SELECT COT FROM info_cot WHERE RACENAME ='{category}'"
+        cursor.execute(query)
+
+        # Mengambil semua hasil query
+        results = cursor.fetchone()
+
+        # Menutup kursor dan koneksi
+        cursor.close()
+        connection.close()
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+
+        return jsonify({'data': results})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True)
