@@ -8,9 +8,6 @@ import mysql.connector
 import json
 from datetime import datetime
 import pandas as pd
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-import openpyxl as xl
 
 app = Flask(__name__)
 CORS(app)
@@ -23,14 +20,14 @@ db_config_0= {
     'database': 'n1569631_livepmrnew'
 }
 
-db_config = {
+db_config2 = {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
     'database': 'n1569631_livepmrnew'
 }
 
-db_config2 = {
+db_config = {
     'host': '156.67.213.247',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
@@ -61,7 +58,27 @@ def getinfodevice():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/geteventdetail', methods=['GET'])
+def geteventdetail():
+    global db_config
+    db_config['database'] = 'n1569631_livepmrnew'
+    try:
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+        insert_query = f'SELECT * FROM event_info'
+        cursor.execute(insert_query)
+        results = cursor.fetchall()
+        connection.commit()
+        cursor.close()
+        connection.close()
 
+        now = datetime.now()
+        dt = now.strftime("%H:%M:%S")
+
+        return jsonify({'status': 'success', 'data': results,'date':dt})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+    
 @app.route('/uploadresult', methods=['POST'])
 def upload_result():
     try:
@@ -129,54 +146,6 @@ def drop_db():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
-@app.route('/updatepeserta', methods=['GET'])
-def update_peserta():
-    try:
-        global db_config
-        global db_data
-        race = request.args.get('race')
-        
-        # Ambil Data
-        if race == 'kediri':
-            id_race = 2
-        if race == 'medan':
-            id_race = 3
-
-        scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("system/credential.json", scope)
-        client = gspread.authorize(creds)
-        sheet_tagcheck = client.open('Data Peserta PMR').get_worksheet(id_race)
-        data_tagcheck = sheet_tagcheck.get_all_records(numericise_ignore=[11])
-        data_post = {'data': data_tagcheck}
-        data_list = data_post['data']
-
-
-        db_config['database'] = f'{db_data}{race}'
-        connection = mysql.connector.connect(**db_config)
-        cursor = connection.cursor()
-
-        # Hapus semua data peserta untuk perlombaan yang diberikan sebelumnya
-        cursor.execute("DELETE FROM info_peserta WHERE race = %s", (race,))
-        connection.commit()
-
-        # Ekstrak semua nilai peserta ke dalam tupel
-        values = [(entry['bib'],(str(entry['race'])+"_"+str(entry['bib'])), entry['firstName'], entry['lastName'], entry['gender'], entry['type'], 
-                   entry['dob'], entry['age'], entry['contest'], entry['category'], entry['race'], 
-                   entry['chipcode']) for entry in data_list]
-
-        # Masukkan semua nilai peserta ke dalam tabel info_peserta
-        insert_query = "INSERT IGNORE INTO info_peserta (`bib`,`code`, `firstName`, `lastName`, `gender`,`type`,`dob`,`age`,`contest`,`category`,`race`,`chipcode`) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.executemany(insert_query, values)
-        connection.commit()
-
-        cursor.close()
-        connection.close()
-        now = datetime.now()
-        dt = now.strftime("%H:%M:%S")
-
-        return jsonify({'status': 'success', 'data': data_list, 'date': dt})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/uploadpeserta', methods=['POST'])
 def uploadpeserta():
@@ -197,10 +166,10 @@ def uploadpeserta():
         # Ekstrak semua nilai peserta ke dalam tupel
         values = [(entry['bib'],(str(entry['race'])+"_"+str(entry['bib'])), entry['firstName'], entry['lastName'], entry['gender'], entry['type'], 
                    entry['dob'], entry['age'], entry['contest'], entry['category'], entry['race'], 
-                   entry['chipcode']) for entry in data_list]
+                   entry['chipcode'],(str(entry['contest'])+" "+str(entry['category']))) for entry in data_list]
 
         # Masukkan semua nilai peserta ke dalam tabel info_peserta
-        insert_query = "INSERT IGNORE INTO info_peserta (`bib`,`code`, `firstName`, `lastName`, `gender`,`type`,`dob`,`age`,`contest`,`category`,`race`,`chipcode`) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        insert_query = "INSERT IGNORE INTO info_peserta (`bib`,`code`, `firstName`, `lastName`, `gender`,`type`,`dob`,`age`,`contest`,`category`,`race`,`chipcode`,`contest_category`) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         cursor.executemany(insert_query, values)
         connection.commit()
 
@@ -255,9 +224,9 @@ def get_alldata():
         cursor = connection.cursor(dictionary=True)
 
         if null == 'true':
-            query = f"SELECT info_peserta.bib, info_peserta.lastName, info_peserta.gender, info_peserta.contest, info_peserta.race, COALESCE(finish.finishtime, '') AS finishtime, COALESCE(finish.overallplace, 9999) AS overallplace, COALESCE(finish.divisionplace, '') AS divisionplace, COALESCE(finish.pace, '') AS pace, COALESCE(cp1.finishtime, '') AS cp1, COALESCE(cp2.finishtime, '') AS cp2, COALESCE(cp3.finishtime, '') AS cp3 FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib LEFT JOIN cp1 ON info_peserta.bib=cp1.bib LEFT JOIN cp2 ON info_peserta.bib=cp2.bib LEFT JOIN cp3 ON info_peserta.bib=cp3.bib WHERE info_peserta.race = '{race}'"
+            query = f"SELECT info_peserta.bib, info_peserta.lastName, info_peserta.gender, info_peserta.contest_category, info_peserta.race, COALESCE(finish.finishtime, '') AS finishtime, COALESCE(finish.overallplace, 9999) AS overallplace, COALESCE(finish.divisionplace, '') AS divisionplace, COALESCE(finish.pace, '') AS pace, COALESCE(cp1.finishtime, '') AS cp1, COALESCE(cp2.finishtime, '') AS cp2, COALESCE(cp3.finishtime, '') AS cp3 FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib LEFT JOIN cp1 ON info_peserta.bib=cp1.bib LEFT JOIN cp2 ON info_peserta.bib=cp2.bib LEFT JOIN cp3 ON info_peserta.bib=cp3.bib WHERE info_peserta.race = '{race}'"
         else:
-            query = f"SELECT info_peserta.bib, info_peserta.lastName,info_peserta.gender,info_peserta.contest,info_peserta.race, finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace, cp1.finishtime AS cp1, cp2.finishtime AS cp2, cp3.finishtime AS cp3 FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib LEFT JOIN cp1 ON info_peserta.bib=cp1.bib LEFT JOIN cp2 ON info_peserta.bib=cp2.bib LEFT JOIN cp3 ON info_peserta.bib=cp3.bib WHERE info_peserta.race = '{race}' AND finish.overallplace IS NOT NULL"
+            query = f"SELECT info_peserta.bib, info_peserta.lastName,info_peserta.gender,info_peserta.contest_category,info_peserta.race, finish.finishtime,finish.chiptime,finish.overallplace,finish.divisionplace, finish.pace, cp1.finishtime AS cp1, cp2.finishtime AS cp2, cp3.finishtime AS cp3 FROM info_peserta LEFT JOIN finish ON info_peserta.bib=finish.bib LEFT JOIN cp1 ON info_peserta.bib=cp1.bib LEFT JOIN cp2 ON info_peserta.bib=cp2.bib LEFT JOIN cp3 ON info_peserta.bib=cp3.bib WHERE info_peserta.race = '{race}' AND finish.overallplace IS NOT NULL"
 
         cursor.execute(query)
 
@@ -303,70 +272,7 @@ def get_data():
         return jsonify({'status': 'success', 'data': results,'date':dt})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
-    
 
-
-
-@app.route('/getdummy', methods=['GET'])
-def getdummy():
-    results = [
-    {
-      "name": "Baim",
-      "bibNumber": 1,
-      "ws2": "00:02:00",
-      "ws3": "00:03:00",
-      "ws5": "00:05:00",
-      "ws6": "00:06:00",
-      "ws8": "00:08:00",
-      "ws9": "00:09:00",
-      "ws11": "00:011:00"
-    },
-    {
-      "name": "Baim A",
-      "bibNumber": 58,
-      "ws2": "00:02:01",
-      "ws3": "00:03:01",
-      "ws5": "00:05:01",
-      "ws6": "00:06:01",
-      "ws8": "00:08:01",
-      "ws9": "00:09:01",
-      "ws11": "00:011:01"
-    },
-    {
-      "name": "Baim B",
-      "bibNumber": 2,
-      "ws2": "00:02:02",
-      "ws3": "00:03:02",
-      "ws5": "00:05:02",
-      "ws6": "00:06:02",
-      "ws8": "00:08:02",
-      "ws9": "00:09:02",
-      "ws11": "00:011:02"
-    },
-    {
-      "name": "Baim V",
-      "bibNumber": 3,
-      "ws2": "00:02:03",
-      "ws3": "00:03:03",
-      "ws5": "00:05:03",
-      "ws6": "00:06:03",
-      "ws8": "00:08:03",
-      "ws9": "00:09:03",
-      "ws11": "00:011:03"
-    },
-    {
-      "name": "Baim PP",
-      "bibNumber": 4,
-      "ws2": "00:02:04",
-      "ws3": "00:03:04",
-      "ws5": "00:05:04",
-      "ws6": "00:06:04",
-      "ws8": "00:08:04",
-      "ws9": "00:09:04",
-      "ws11": "00:011:04"
-    }
-  ]
-    return jsonify({'status': 'success', 'data': results})
 
 
 if __name__ == '__main__':
