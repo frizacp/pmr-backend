@@ -20,14 +20,14 @@ db_config_0= {
     'database': 'n1569631_livepmrnew'
 }
 
-db_config2 = {
+db_config = {
     'host': 'localhost',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
     'database': 'n1569631_livepmrnew'
 }
 
-db_config = {
+db_config3 = {
     'host': '156.67.213.247',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
