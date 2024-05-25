@@ -338,7 +338,7 @@ def get_cot():
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
-        query = f"SELECT COT FROM info_cot WHERE RACENAME ='{category}'"
+        query = f"SELECT COT FROM info_race WHERE RACENAME ='{category}'"
         cursor.execute(query)
 
         # Mengambil semua hasil query
