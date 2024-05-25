@@ -27,7 +27,7 @@ db_config = {
     'database': 'n1569631_livepmrnew'
 }
 
-db_config3 = {
+db_config2 = {
     'host': '156.67.213.247',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
@@ -353,6 +353,33 @@ def get_cot():
         return jsonify({'data': results})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/getfixresult', methods=['GET'])
+def getfixresult():
+    global db_config
+    global db_data
+    race = request.args.get('race')
+    category = request.args.get('category')
+    db_config['database'] = f'{db_data}{race}'
+    try:
+        # Membuat koneksi ke database
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        query = f"SELECT result.ID,result.BIB,result.NAME,result.GENDER,result.CATEGORY,result.POSOVERALL,result.POSCATEGORY,result.POSGENDER,result.FINISHTIME,result.PACE,result.CERTIFICATE,result.STATUS,result.RACENAME ,cp1.finishtime AS 'CP1' ,cp2.finishtime AS 'CP2' ,cp3.finishtime AS 'CP3' from result LEFT JOIN cp1 ON result.BIB = cp1.bib LEFT JOIN cp2 ON result.BIB = cp2.bib LEFT JOIN cp3 ON result.BIB = cp3.bib WHERE RACENAME ='{category}'"
+        cursor.execute(query)
+
+        # Mengambil semua hasil query
+        results = cursor.fetchall()
+
+        # Menutup kursor dan koneksi
+        cursor.close()
+        connection.close()
+
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
