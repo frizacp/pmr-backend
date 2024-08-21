@@ -27,7 +27,7 @@ db_config = {
     'database': 'n1569631_livepmrnew'
 }
 
-db_config2 = {
+db_config0 = {
     'host': '156.67.213.247',
     'user': 'n1569631_admin',
     'password': 'Ohno210500!',
@@ -35,6 +35,10 @@ db_config2 = {
 }
 
 db_data ='n1569631_pmr_live_'
+
+@app.route('/test', methods=['GET'])
+def test():
+    return "Mashook"
 
 @app.route('/getinfodevice', methods=['GET'])
 def getinfodevice():
@@ -379,7 +383,49 @@ def getfixresult():
         return jsonify(results)
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+    
+@app.route('/getdetailresult', methods=['GET'])
+def getdetailresult():
+    global db_config
+    global db_data
+    race = (request.args.get('race')).upper()
+    db_config['database'] = f'{db_data}{race}'
+    try:
+        # Membuat koneksi ke database
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        query = "SELECT result.BIB,result.NAME,result.GENDER,result.CATEGORY,result.FINISHTIME,result.PACE,result.STATUS,result.RACENAME ,cp1.finishtime AS 'CP1' ,cp2.finishtime AS 'CP2' ,cp3.finishtime AS 'CP3' from result LEFT JOIN cp1 ON result.BIB = cp1.bib LEFT JOIN cp2 ON result.BIB = cp2.bib LEFT JOIN cp3 ON result.BIB = cp3.bib"
+        cursor.execute(query)
+
+        # Mengambil semua hasil query
+        data = cursor.fetchall()
+        df = pd.DataFrame(data)
+        df = df[~df['CATEGORY'].isin(['DNF', 'DNS'])]
+        df['DETAIL CATEGORY'] = df['RACENAME']+" "+df['CATEGORY']+" "+df['GENDER']
+        unique_race = df['DETAIL CATEGORY'].unique()
+
+        results = {}
+        # Isi dictionary menggunakan loop for
+        for race in unique_race:
+            df2 = df[df['DETAIL CATEGORY'] == race].copy()
+            df2.loc[:, 'FINISHTIME'] = pd.to_datetime(df2['FINISHTIME'], format='%H:%M:%S.%f').dt.strftime('%H:%M:%S.%f')
+            df2.loc[:, 'FINISHTIME'] = df2['FINISHTIME'].str[:-4]
+            df2 = df2.sort_values(by='FINISHTIME', ascending=True)
+            df2.head(10)
+            df_results = df2.to_dict('records')
+            key = f"{race}"
+            value = df_results
+            results[key] = value
+
+        # Menutup kursor dan koneksi
+        cursor.close()
+        connection.close()
+
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
